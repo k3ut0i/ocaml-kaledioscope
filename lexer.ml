@@ -69,14 +69,17 @@ module Lexer = struct
     match Stream.peek in_s with
       None -> token_s
     | Some x -> match x with
-                  '#' -> let rest_s = slurp_comment in_s in lex rest_s token_s
-                | '0' .. '9' -> let tok, rest_s = lex_number in_s in
-                                lex rest_s (tok :: token_s)
-                | x -> if is_alpha x
-                       then let tok, rest_s = lex_identifier in_s in
-                            lex rest_s (tok :: token_s)
-                       else let tok = Stream.next in_s in
-                            lex in_s (Kwd tok :: token_s)
-
-                            
+                  ' ' | '\n' | '\r' | '\t' ->
+                         Stream.junk in_s ; lex in_s token_s
+                  | '#' -> let rest_s = slurp_comment in_s in lex rest_s token_s
+                  | '0' .. '9' -> let tok, rest_s = lex_number in_s in
+                                  lex rest_s (tok :: token_s)
+                  | 'a' .. 'z' | 'A' .. 'Z' -> 
+                     let tok, rest_s = lex_identifier in_s in
+                     lex rest_s (tok :: token_s)
+                  | _ ->  let tok = Stream.next in_s in
+                          lex in_s (Kwd tok :: token_s)
+                          
+                          
 end
+                 
